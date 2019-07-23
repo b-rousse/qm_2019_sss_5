@@ -33,7 +33,22 @@ def hopping_energy(o1, o2, r12, model_parameters):
     return ans
 
 def coulomb_energy(o1, o2, r12):
-    '''Returns the Coulomb matrix element for a pair of multipoles of type o1 & o2 separated by a vector r12.'''
+    '''Returns the Coulomb matrix element for a pair of multipoles of type o1 & o2 separated by a vector r12.
+    
+    Parameters
+    ----------
+    o1 : string
+        Type of orbital of the first orbital. s, p, d, ...
+    o2 : string
+        Type of orbital of the second orbital. s, p, d, ...
+    r12 : np.array
+        Array of size (3) specifying the nuclear separation vector
+    
+    Results
+    -------
+    ans : float
+        The coulombic repulsion energy between two multipoles defined by the parameters.
+    '''
     r12_length = np.linalg.norm(r12)
     if o1 == 's' and o2 == 's':
         ans = 1.0 / r12_length
