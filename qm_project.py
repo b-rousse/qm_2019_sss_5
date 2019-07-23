@@ -171,7 +171,10 @@ def calculate_fock_matrix(hamiltonian_matrix, interaction_matrix,
     return fock_matrix
 
 def calculate_density_matrix(fock_matrix):
-    '''Returns the 1-electron density matrix defined by the input Fock matrix.'''
+    '''Returns the 1-electron density matrix defined by the input Fock matrix.
+    
+       Parameters
+       ---------'''
     num_occ = (ionic_charge // 2) * np.size(fock_matrix,
                                             0) // orbitals_per_atom
     orbital_energy, orbital_matrix = np.linalg.eigh(fock_matrix)
