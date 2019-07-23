@@ -46,7 +46,22 @@ def hopping_energy(o1, o2, r12, model_parameters):
     return ans
 
 def coulomb_energy(o1, o2, r12):
-    '''Returns the Coulomb matrix element for a pair of multipoles of type o1 & o2 separated by a vector r12.'''
+    '''Returns the Coulomb matrix element for a pair of multipoles of type o1 & o2 separated by a vector r12.
+    
+    Parameters
+    ----------
+    o1 : string
+        Type of orbital of the first orbital. s, p, d, ...
+    o2 : string
+        Type of orbital of the second orbital. s, p, d, ...
+    r12 : np.array
+        Array of size (3) specifying the nuclear separation vector
+    
+    Results
+    -------
+    ans : float
+        The coulombic repulsion energy between two multipoles defined by the parameters.
+    '''
     r12_length = np.linalg.norm(r12)
     if o1 == 's' and o2 == 's':
         ans = 1.0 / r12_length
@@ -61,7 +76,25 @@ def coulomb_energy(o1, o2, r12):
     return ans
 
 def pseudopotential_energy(o, r, model_parameters):
-    '''Returns the energy of a pseudopotential between a multipole of type o and an atom separated by a vector r.'''
+    '''Returns the energy of a pseudopotential between a multipole of type o and an atom separated by a vector r.
+    
+    The semiempirical model approximations strongly distort the physics of inter-atomic Pauli repulsion, and we compensate for these errors with a 
+    short-range ionic pseudopotential, which is a common tool in physics for building effective models of ionic cores:!
+
+    Parameters
+    ----------
+    o : str
+        This string id the orbital type. Either s, px, py, pz
+    r : float
+        The non-rescaled distane.
+    model_parameters : dict
+        The parameter values have been pre-optimized for this project, but the fitting process 
+        and reference data are both listed at the end of the project if you'd like to learn more about them
+    Returns
+    -------
+    ans : float
+        Dictionary is bonds with atom pair as tuples and lengths as values
+    '''
     ans = model_parameters['v_pseudo']
     r_rescaled = r / model_parameters['r_pseudo']
     ans *= np.exp(1.0 - np.dot(r_rescaled, r_rescaled))
@@ -71,7 +104,9 @@ def pseudopotential_energy(o, r, model_parameters):
 
 
 def calculate_energy_ion(atomic_coordinates):
-    '''Returns the ionic contribution to the total energy for an input list of atomic coordinates.'''
+    '''The interaction kernels from the pesudopotential energy function enable us to define and 
+calculate the ion-ion energy in Hamiltonian. The following below shows how to implement the ionic energy 
+which determines the ionic contribution to the overall energy related to an input list of specified atomic coordinates.,'''
     energy_ion = 0.0
     for i, r_i in enumerate(atomic_coordinates):
         for j, r_j in enumerate(atomic_coordinates):
