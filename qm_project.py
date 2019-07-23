@@ -48,7 +48,25 @@ def coulomb_energy(o1, o2, r12):
     return ans
 
 def pseudopotential_energy(o, r, model_parameters):
-    '''Returns the energy of a pseudopotential between a multipole of type o and an atom separated by a vector r.'''
+    '''Returns the energy of a pseudopotential between a multipole of type o and an atom separated by a vector r.
+    
+    The semiempirical model approximations strongly distort the physics of inter-atomic Pauli repulsion, and we compensate for these errors with a 
+    short-range ionic pseudopotential, which is a common tool in physics for building effective models of ionic cores:!
+
+    Parameters
+    ----------
+    o : str
+        This string id the orbital type. Either s, px, py, pz
+    r : float
+        The non-rescaled distane.
+    model_parameters : dict
+        The parameter values have been pre-optimized for this project, but the fitting process 
+        and reference data are both listed at the end of the project if you'd like to learn more about them
+    Returns
+    -------
+    ans : float
+        Dictionary is bonds with atom pair as tuples and lengths as values
+    '''
     ans = model_parameters['v_pseudo']
     r_rescaled = r / model_parameters['r_pseudo']
     ans *= np.exp(1.0 - np.dot(r_rescaled, r_rescaled))
