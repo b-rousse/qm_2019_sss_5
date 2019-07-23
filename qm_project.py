@@ -1,7 +1,20 @@
 import numpy as np
 
 def atom(ao_index):
-    '''Returns the atom index part of an atomic orbital index.'''
+    '''Returns the atom index part of an atomic orbital index.
+
+    This is a longer explanation of what the function does, NOT how the function does it. 
+
+    Parameters
+    ----------
+    ao_index : int
+        index of atomic orbital.
+
+    Returns
+    -------
+    ao_index // orbitals_per_atom
+        An integer which is the index of the atom that the atomic orbital is centered on.
+    '''
     return ao_index // orbitals_per_atom
 
 def orb(ao_index):
