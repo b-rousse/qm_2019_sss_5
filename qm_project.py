@@ -58,7 +58,9 @@ def pseudopotential_energy(o, r, model_parameters):
 
 
 def calculate_energy_ion(atomic_coordinates):
-    '''Returns the ionic contribution to the total energy for an input list of atomic coordinates.'''
+    '''The interaction kernels from the pesudopotential energy function enable us to define and 
+calculate the ion-ion energy in Hamiltonian. The following below shows how to implement the ionic energy 
+which determines the ionic contribution to the overall energy related to an input list of specified atomic coordinates.,'''
     energy_ion = 0.0
     for i, r_i in enumerate(atomic_coordinates):
         for j, r_j in enumerate(atomic_coordinates):
