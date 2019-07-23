@@ -18,7 +18,9 @@ def atom(ao_index):
     return ao_index // orbitals_per_atom
 
 def orb(ao_index):
-    '''Returns the orbital type of an atomic orbital index.'''
+    '''Returns the orbital type of an atomic orbital index.
+    
+    This is a more detailed description'''
     orb_index = ao_index % orbitals_per_atom
     return orbital_types[orb_index]
 
