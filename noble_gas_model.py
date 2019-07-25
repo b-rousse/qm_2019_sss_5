@@ -1,4 +1,4 @@
-class Noble_Gas_Model():
+class NobleGasModel():
     def __init__(self):
         self.model_parameters = {
          'coulomb_p': -0.010255409806855187,
