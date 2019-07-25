@@ -126,8 +126,7 @@ def calculate_potential_vector(atomic_coordinates, model_parameters):
         for atom_i, r_i in enumerate(atomic_coordinates):
             r_pi = atomic_coordinates[atom(p)] - r_i
             if atom_i != atom(p):
-                potential_vector[p] += (
-                    pseudopotential_energy(orb(p), r_pi, model_parameters) -
+                potential_vector[p] += (pseudopotential_energy(orb(p), r_pi, model_parameters) -
                     ionic_charge * coulomb_energy(orb(p), 's', r_pi))
     return potential_vector
 
@@ -165,16 +164,14 @@ def calculate_chi_tensor(atomic_coordinates, model_parameters):
             q = ao_index(atom(p), orb_q)
             for orb_r in orbital_types:
                 r = ao_index(atom(p), orb_r)
-                chi_tensor[p, q, r] = chi_on_atom(orb(p), orb(q), orb(r),
-                                                  model_parameters)
+                chi_tensor[p, q, r] = chi_on_atom(orb(p), orb(q), orb(r), model_parameters)
     return chi_tensor
 
 def calculate_hamiltonian_matrix(atomic_coordinates, model_parameters):
     '''Returns the 1-body Hamiltonian matrix for an input list of atomic coordinates.'''
     ndof = len(atomic_coordinates) * orbitals_per_atom
     hamiltonian_matrix = np.zeros((ndof, ndof))
-    potential_vector = calculate_potential_vector(atomic_coordinates,
-                                                  model_parameters)
+    potential_vector = calculate_potential_vector(atomic_coordinates, model_parameters)
     for p in range(ndof):
         for q in range(ndof):
             if atom(p) != atom(q):
@@ -189,9 +186,7 @@ def calculate_hamiltonian_matrix(atomic_coordinates, model_parameters):
                     hamiltonian_matrix[p, q] += model_parameters['energy_p']
                 for orb_r in orbital_types:
                     r = ao_index(atom(p), orb_r)
-                    hamiltonian_matrix[p, q] += (
-                        chi_on_atom(orb(p), orb(q), orb_r, model_parameters) *
-                        potential_vector[r])
+                    hamiltonian_matrix[p, q] += (chi_on_atom(orb(p), orb(q), orb_r, model_parameters) * potential_vector[r])
     return hamiltonian_matrix
 
 def calculate_atomic_density_matrix(atomic_coordinates):
@@ -232,8 +227,7 @@ def calculate_density_matrix(fock_matrix):
         -------
         density_matrix : numpy array
             Density Matrix obtain from the fock matrix'''
-    num_occ = (ionic_charge // 2) * np.size(fock_matrix,
-                                            0) // orbitals_per_atom
+    num_occ = (ionic_charge // 2) * np.size(fock_matrix, 0) // orbitals_per_atom
     orbital_energy, orbital_matrix = np.linalg.eigh(fock_matrix)
     occupied_matrix = orbital_matrix[:, :num_occ]
     density_matrix = occupied_matrix @ occupied_matrix.T
@@ -247,13 +241,10 @@ def scf_cycle(hamiltonian_matrix, interaction_matrix, density_matrix,
     for iteration in range(max_scf_iterations):
         new_fock_matrix = calculate_fock_matrix(hamiltonian_matrix, interaction_matrix, old_density_matrix, chi_tensor)
         new_density_matrix = calculate_density_matrix(new_fock_matrix)
-
         error_norm = np.linalg.norm( old_density_matrix - new_density_matrix )
         if error_norm < convergence_tolerance:
             return new_density_matrix, new_fock_matrix
-
-        old_density_matrix = (mixing_fraction * new_density_matrix
-                              + (1.0 - mixing_fraction) * old_density_matrix)
+        old_density_matrix = (mixing_fraction * new_density_matrix + (1.0 - mixing_fraction) * old_density_matrix)
     print("WARNING: SCF cycle didn't converge")
     return new_density_matrix, new_fock_matrix
 
