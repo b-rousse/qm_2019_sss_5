@@ -9,6 +9,10 @@ class MP2XTREME:
         self.mp2_energy = 0.0
         self.mp2_correction = 0.0
 
+        self.fock_matrix = myHF.fock_matrix
+        self.interaction_matrix = myHF.interaction_matrix
+        self.chi_tensor = myHF.chi_tensor
+
     def partition_orbitals(self, fock_matrix):
         '''Returns a list with the occupied/virtual energies & orbitals defined by the input Fock matrix.'''
         num_occ = (self.myMolecule.ionic_charge // 2) * np.size(fock_matrix,
