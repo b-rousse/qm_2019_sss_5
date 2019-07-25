@@ -1,5 +1,8 @@
 import numpy as np
 
+"""
+This class takes an instance of HartreeFock and NobelGas and is able to calculate the MP2 energy correction on top of the HF energy
+"""
 class MP2XTREME:
     def __init__(self, myHF, myMolecule):
         self.hf_energy = myHF.hf_energy
@@ -13,6 +16,26 @@ class MP2XTREME:
         self.interaction_matrix = myHF.interaction_matrix
         self.chi_tensor = myHF.chi_tensor
 
+    """
+    This function partitions the converged molecular orbitals of the HF calculation into occupied and virtual orbitals,
+    and does the same for their orbital energies.
+
+    Parameters
+    ----------
+    fock_matrix : np.array
+        A np.array of size (num_ao, num_ao). This is the final converged fock matrix obtained from the HF calculation
+    
+    Returns
+    -------
+    occupied_energy : np.array
+        A np.array of size (num_occ) which contains the energies of the occupied orbitals, ordered in increasing energy.
+    virtual_energy : np.array
+        A np.array of size (num_ao - num_occ) which contains the energies of the virtual orbitals, ordered in increasing energy.
+    occupied_matrix : np.array
+        A np.array of size (num_ao, num_occ) where each column is a canonical occupied molecular orbital.
+    virtual_matrix : np.array
+        A np.array of size (num_ao, num_ao - num_occ) where each column is a canonical virtual molecular orbital.
+    """
     def partition_orbitals(self, fock_matrix):
         '''Returns a list with the occupied/virtual energies & orbitals defined by the input Fock matrix.'''
         num_occ = (self.myMolecule.ionic_charge // 2) * np.size(fock_matrix,
@@ -25,6 +48,25 @@ class MP2XTREME:
 
         return occupied_energy, virtual_energy, occupied_matrix, virtual_matrix
 
+    """
+    This function rotates the interaction tensor into the basis of canonical molecular orbitals.
+
+    Parameters
+    ----------
+    occupied_matrix : np.array
+        A np.array of size (num_ao, num_occ) where each column is a canonical occupied molecular orbital.
+    virtual_matrix : np.array
+        A np.array of size (num_ao, num_ao - num_occ) where each column is a canonical virtual molecular orbital.
+    interaction_matrix : np.array
+        A np.array of size (num_ao, num_ao) representing the interaction between each atomic orbital in the AO basis
+    chi_tensor : np.array
+        A np.array of size (num_ao, num_ao, num_ao) representing the three electron integrals, I guess. In AO basis.
+
+    Returns
+    -------
+    interaction_tensor : np.array
+        A np.array of size (num_ao, num_ao, num_ao, num_ao). The 2 electron integrals in the canonical basis.
+    """ 
     def transform_interaction_tensor(self, occupied_matrix, virtual_matrix,
                                     interaction_matrix, chi_tensor):
         '''Returns a transformed V tensor defined by the input occupied, virtual, & interaction matrices.'''
@@ -40,8 +82,30 @@ class MP2XTREME:
                                     optimize=True)
         return interaction_tensor
 
-    def calculate_energy_mp2(self, fock_matrix, interaction_matrix, chi_tensor):
-        '''Returns the MP2 contribution to the total energy defined by the input Fock & interaction matrices.'''
+    """
+    Returns the MP2 contribution to the total energy defined by the input Fock & interaction matrices.
+
+    Parameters
+    ----------
+    fock_matrix : np.array
+        A np.array of size (num_ao, num_ao). This is the final converged fock matrix obtained from the HF calculation in AO basis.
+    interaction_matrix : np.array
+        A np.array of size (num_ao, num_ao) representing the interaction between each atomic orbital in the AO basis
+    chi_tensor : np.array
+        A np.array of size (num_ao, num_ao, num_ao) representing the three electron integrals, I guess. In AO basis.
+
+    Returns
+    -------
+    energy_mp2 : float
+        MP2 contribution to the total energy.
+    """ 
+    def calculate_energy_mp2(self, fock_matrix = None, interaction_matrix = None, chi_tensor = None):
+        if fock_matrix == None:
+            fock_matrix = self.fock_matrix
+        if interaction_matrix == None:
+            interaction_matrix = self.interaction_matrix
+        if chi_tensor == None:
+            chi_tensor = self.chi_tensor
         E_occ, E_virt, occupied_matrix, virtual_matrix = self.partition_orbitals(
             fock_matrix)
         V_tilde = self.transform_interaction_tensor(occupied_matrix, virtual_matrix,
