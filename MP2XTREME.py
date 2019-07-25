@@ -5,12 +5,11 @@ class MP2XTREME:
         self.hf_energy = myHF.hf_energy
         self.occupied_energy = myHF.occupied_energy
         self.interaction_tensor = myHF.interaction_tensor
-        self.myHF = myHF
         self.myMolecule = myMolecule
         self.mp2_energy = 0.0
+        self.mp2_correction = 0.0
 
-    def partition_orbitals(self):
-        fock_matrix = self.myHF.fock_matrix
+    def partition_orbitals(self, fock_matrix):
         '''Returns a list with the occupied/virtual energies & orbitals defined by the input Fock matrix.'''
         num_occ = (self.myMolecule.ionic_charge // 2) * np.size(fock_matrix,
                                                 0) // self.myMolecule.orbitals_per_atom
@@ -39,9 +38,9 @@ class MP2XTREME:
 
     def calculate_energy_mp2(self, fock_matrix, interaction_matrix, chi_tensor):
         '''Returns the MP2 contribution to the total energy defined by the input Fock & interaction matrices.'''
-        E_occ, E_virt, occupied_matrix, virtual_matrix = self.myHF.partition_orbitals(
+        E_occ, E_virt, occupied_matrix, virtual_matrix = self.partition_orbitals(
             fock_matrix)
-        V_tilde = self.myHF.transform_interaction_tensor(occupied_matrix, virtual_matrix,
+        V_tilde = self.transform_interaction_tensor(occupied_matrix, virtual_matrix,
                                             interaction_matrix, chi_tensor)
 
         energy_mp2 = 0.0
@@ -55,5 +54,6 @@ class MP2XTREME:
                             (2.0 * V_tilde[a, i, b, j]**2 -
                             V_tilde[a, i, b, j] * V_tilde[a, j, b, i]) /
                             (E_virt[a] + E_virt[b] - E_occ[i] - E_occ[j]))
-        self.mp2_energy = energy_mp2
+        self.mp2_correction = energy_mp2
+        self.mp2_energy = self.hf_energy + energy_mp2
         return energy_mp2
