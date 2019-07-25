@@ -3,18 +3,18 @@ import numpy as np
 """
 This class takes an instance of HartreeFock and NobelGas and is able to calculate the MP2 energy correction on top of the HF energy
 """
-class MP2XTREME:
-    def __init__(self, myHF, myMolecule):
-        self.hf_energy = myHF.hf_energy
-        self.occupied_energy = myHF.occupied_energy
-        self.interaction_tensor = myHF.interaction_tensor
-        self.myMolecule = myMolecule
+class MP2NoHF:
+    def __init__(self, HartreeFock, NobleGasModel):
+        self.hf_energy = HartreeFock.hf_energy
+        self.occupied_energy = HartreeFock.occupied_energy
+        self.interaction_tensor = HartreeFock.interaction_tensor
+        self.NobleGasModel = NobleGasModel
         self.mp2_energy = 0.0
         self.mp2_correction = 0.0
 
-        self.fock_matrix = myHF.fock_matrix
-        self.interaction_matrix = myHF.interaction_matrix
-        self.chi_tensor = myHF.chi_tensor
+        self.fock_matrix = HartreeFock.fock_matrix
+        self.interaction_matrix = HartreeFock.interaction_matrix
+        self.chi_tensor = HartreeFock.chi_tensor
 
     """
     This function partitions the converged molecular orbitals of the HF calculation into occupied and virtual orbitals,
@@ -38,8 +38,7 @@ class MP2XTREME:
     """
     def partition_orbitals(self, fock_matrix):
         '''Returns a list with the occupied/virtual energies & orbitals defined by the input Fock matrix.'''
-        num_occ = (self.myMolecule.ionic_charge // 2) * np.size(fock_matrix,
-                                                0) // self.myMolecule.orbitals_per_atom
+        num_occ = (self.NobleGasModel.ionic_charge // 2) * np.size(fock_matrix, 0) // self.NobleGasModel.orbitals_per_atom
         orbital_energy, orbital_matrix = np.linalg.eigh(fock_matrix)
         occupied_energy = orbital_energy[:num_occ]
         virtual_energy = orbital_energy[num_occ:]
@@ -67,19 +66,10 @@ class MP2XTREME:
     interaction_tensor : np.array
         A np.array of size (num_ao, num_ao, num_ao, num_ao). The 2 electron integrals in the canonical basis.
     """ 
-    def transform_interaction_tensor(self, occupied_matrix, virtual_matrix,
-                                    interaction_matrix, chi_tensor):
+    def transform_interaction_tensor(self, occupied_matrix, virtual_matrix, interaction_matrix, chi_tensor):
         '''Returns a transformed V tensor defined by the input occupied, virtual, & interaction matrices.'''
-        chi2_tensor = np.einsum('qa,ri,qrp',
-                                virtual_matrix,
-                                occupied_matrix,
-                                chi_tensor,
-                                optimize=True)
-        interaction_tensor = np.einsum('aip,pq,bjq->aibj',
-                                    chi2_tensor,
-                                    interaction_matrix,
-                                    chi2_tensor,
-                                    optimize=True)
+        chi2_tensor = np.einsum('qa,ri,qrp', virtual_matrix, occupied_matrix, chi_tensor, optimize=True)
+        interaction_tensor = np.einsum('aip,pq,bjq->aibj', chi2_tensor, interaction_matrix, chi2_tensor, optimize=True)
         return interaction_tensor
 
     """
@@ -106,10 +96,8 @@ class MP2XTREME:
             interaction_matrix = self.interaction_matrix
         if chi_tensor == None:
             chi_tensor = self.chi_tensor
-        E_occ, E_virt, occupied_matrix, virtual_matrix = self.partition_orbitals(
-            fock_matrix)
-        V_tilde = self.transform_interaction_tensor(occupied_matrix, virtual_matrix,
-                                            interaction_matrix, chi_tensor)
+        E_occ, E_virt, occupied_matrix, virtual_matrix = self.partition_orbitals(fock_matrix)
+        V_tilde = self.transform_interaction_tensor(occupied_matrix, virtual_matrix, interaction_matrix, chi_tensor)
 
         energy_mp2 = 0.0
         num_occ = len(E_occ)
@@ -119,9 +107,8 @@ class MP2XTREME:
                 for i in range(num_occ):
                     for j in range(num_occ):
                         energy_mp2 -= (
-                            (2.0 * V_tilde[a, i, b, j]**2 -
-                            V_tilde[a, i, b, j] * V_tilde[a, j, b, i]) /
-                            (E_virt[a] + E_virt[b] - E_occ[i] - E_occ[j]))
+                            (2.0 * V_tilde[a, i, b, j]**2 - V_tilde[a, i, b, j] * V_tilde[a, j, b, i])
+                             / (E_virt[a] + E_virt[b] - E_occ[i] - E_occ[j]))
         self.mp2_correction = energy_mp2
         self.mp2_energy = self.hf_energy + energy_mp2
         return energy_mp2
