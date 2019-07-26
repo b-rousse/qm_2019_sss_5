@@ -119,6 +119,18 @@ Eigen::MatrixXd calc_fock_matrix_fast(Eigen::MatrixXd hamiltonian_matrix, Eigen:
 int main()
 {
     std::map<std::string, double> model_parameters;
-    
+    model_parameters["r_hop"] = 3.1810226927827516,
+    model_parameters["t_ss"] = 0.03365982238611262,
+    model_parameters["t_sp"] = -0.029154833035109226,
+    model_parameters["t_pp1"] = -0.0804163845390335,
+    model_parameters["t_pp2"] = -0.01393611496959445,
+    model_parameters["r_pseudo"] = 2.60342991362958,
+    model_parameters["v_pseudo"] = 0.022972992186364977,
+    model_parameters["dipole"] = 2.781629275106456,
+    model_parameters["energy_s"] = 3.1659446174413004,
+    model_parameters["energy_p"] = -2.3926873325346554,
+    model_parameters["coulomb_s"] = 0.3603533286088998,
+    model_parameters["coulomb_p"] = -0.003267991835806299
+
     return 0;
 }
