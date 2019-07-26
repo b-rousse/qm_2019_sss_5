@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
 ```
 
-qm5 works with 3 main files: `noble_gas_model`, `HartreeFock`, and `MP2`. Each of these files is a class that has attributes and methods associated with the class. All of them work together to produce the Hartree Fock energy with the MP2 correct    ion for a Noble Gas, e.g. Argon.
+qm5 works with 3 main files: `noble_gas_model.py`, `HartreeFock.py`, and `MP2.py`. Each of these files is a class that has attributes and methods associated with the class. All of them work together to produce the Hartree Fock energy with the MP2 correct    ion for a Noble Gas, e.g. Argon.
 
 
 
