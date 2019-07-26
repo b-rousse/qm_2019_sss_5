@@ -1,13 +1,11 @@
 
 ![](qm5.png)
 
-qm5 is a python library for dealing with the energy calculations of noble gases.
 
-
-##Description
+## Description
 qm5 Simulates a cluster of Argon atoms using quantum mechanics (QM). The codes uses simple semiempirical quantum mechanics. Since Argon is a noble gas, mostly London dispersion forces predominate. The lowest energy dipole transition is from the occupied $3p$ states to the unoccupied 4s steate, including these 4 atomic orbitals per atom.  
 
-
+ \begin{equation} \begin{bmatrix} x & \dot{x} & \theta & \dot{\theta} & L & m & M \end{bmatrix} \end{equation}
 
 
 ## Installation
