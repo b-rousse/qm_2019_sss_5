@@ -1,18 +1,20 @@
 class NobleGasModl():
     def __init__(self):
         self.model_parameters = {
-         'coulomb_p': -0.010255409806855187,
-         'coulomb_s': 0.4536486561938202,
-         'dipole': 1.6692376991516769,
-         'energy_p': -3.1186533988406335,
-         'energy_s': 11.334912902362603,
-         'r_hop': 2.739689713337267,
-         'r_pseudo': 1.1800779720963734,
-         't_pp1': -0.029546671673199854,
-         't_pp2': -0.0041958662271044875,
-         't_sp': 0.000450562836426027,
-         't_ss': 0.0289251941290921,
-         'v_pseudo': -0.015945813280635074}
+            'r_hop' : 3.1810226927827516, # hopping length scale
+            't_ss' : 0.03365982238611262, # s-s hopping energy scale
+            't_sp' : -0.029154833035109226, # s-p hopping energy scale
+            't_pp1' : -0.0804163845390335, # 1st p-p hopping energy scale
+            't_pp2' : -0.01393611496959445, # 2nd p-p hopping energy scale
+            'r_pseudo' : 2.60342991362958, # pseudopotential length scale
+            'v_pseudo' : 0.022972992186364977, # pseudopotential energy scale
+            'dipole' : 2.781629275106456, # dipole strength of s-p transition
+            'energy_s' : 3.1659446174413004, # onsite energy of s orbital
+            'energy_p' : -2.3926873325346554, # onsite energy of p orbital
+            'coulomb_s' : 0.3603533286088998, # Coulomb self-energy of monopole
+            'coulomb_p' : -0.003267991835806299 # Coulomb self-energy of dipole
+        }
+        
         self.ionic_charge = 6
         self.orbital_types = ['s', 'px', 'py', 'pz']
         self.p_orbitals = self.orbital_types[1:]
