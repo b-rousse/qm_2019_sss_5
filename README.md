@@ -5,8 +5,6 @@
 ## Description
 qm5 Simulates a cluster of Argon atoms using quantum mechanics (QM). The codes uses simple semiempirical quantum mechanics. Since Argon is a noble gas, mostly London dispersion forces predominate. The lowest energy dipole transition is from the occupied $3p$ states to the unoccupied 4s steate, including these 4 atomic orbitals per atom.  
 
-$$ \begin{bmatrix} x & \dot{x} & \theta & \dot{\theta} & L & m & M \end{bmatrix} $$
-
 
 ## Installation
 
@@ -20,14 +18,29 @@ conda install qm5-molssi -c conda-forge
 
 qm5 works with 3 main files: `noble_gas_model`, `HartreeFock`, and `MP2`. Each of these files is a class that has attributes and methods associated with the class. All of them work together to produce the Hartree Fock energy with the MP2 correction for a Noble Gas, e.g. Argon. 
 
+The main file is `routine.py` that performs as follows:
+
+
+
 
 ```python
-import qm5
 
-my_argon = qm5.Noble_Gas()
-my_hf = qm5.HartreeFock(my_argon, user_defined_atomic_coordinates)
-my_MP2 = qm5.MP2(my_hf)
+import numpy as np
+import mp2 as mp2
+import hartree_fock as hf
+import noble_gas_model as noble_gas_model
 
+if __name__ == "__main__":
+    NobleGasModel = noble_gas_model.NobleGasModl()
+    atomic_coordinates = np.array([[0.0,0.0,0.0], [3.0,4.0,5.0]])
+    hartree_fock_instance = hf.HartreeFock(NobleGasModel, atomic_coordinates)
+    hartree_fock_instance.density_matrix = hartree_fock_instance.calculate_atomic_density_matrix(NobleGasModel)
+    hartree_fock_instance.density_matrix, hartree_fock_instance.fock_matrix = hartree_fock_instance.scf_cycle(NobleGasModel)
+    energy_scf = hartree_fock_instance.calculate_energy_scf()
+    energy_ion = hartree_fock_instance.calculate_energy_ion(NobleGasModel)
+    print(F'The SCF energy is  {energy_scf} and the ion energy is {energy_ion} ')
+    #mp2_instance = mp2.MP2(hartree_fock_instance)
+    #print(F'The MP2 energy is {mp2.MP2.calculate_energy_mp2}')
 
 ```
 
