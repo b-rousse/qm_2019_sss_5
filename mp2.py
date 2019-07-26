@@ -2,7 +2,7 @@ import numpy as np
 from hartree_fock import HartreeFock
 class MP2(HartreeFock):
     def __init__(self, fock_matrix, interaction_matrix, chi_tensor, NobleGasModel):
-        super().__init__(fock_matrix, interaction_matrix, chi_tensor)
+        super().__init__(NobleGasModel)
         self.orbitals_per_atom = NobleGasModel.orbitals_per_atom
         self.ionic_charge = NobleGasModel.ionic_charge
         self.energy_mp2 = 0.0
