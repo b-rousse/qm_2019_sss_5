@@ -182,12 +182,12 @@ class HartreeFock:
 
         return density_matrix
 
-    def scf_cycle(self, hamiltonian_matrix, interaction_matrix, density_matrix, chi_tensor, max_scf_iterations = 100, mixing_fraction = 0.25, convergence_tolerance = 1e-4):
+    def scf_cycle(self, max_scf_iterations = 100, mixing_fraction = 0.25, convergence_tolerance = 1e-4):
         '''Returns converged density & Fock matrices defined by the input Hamiltonian, interaction, & density matrices.'''
-        old_density_matrix = density_matrix.copy()
+        old_density_matrix = self.density_matrix.copy()
         for iteration in range(max_scf_iterations):
-            new_fock_matrix = calculate_fock_matrix(hamiltonian_matrix, interaction_matrix, old_density_matrix, chi_tensor)
-            new_density_matrix = calculate_density_matrix(new_fock_matrix)
+            new_fock_matrix = self.calculate_fock_matrix(self.hamiltonian_matrix, self.interaction_matrix, old_density_matrix, self.chi_tensor)
+            new_density_matrix = self.calculate_density_matrix(new_fock_matrix)
 
             error_norm = np.linalg.norm( old_density_matrix - new_density_matrix )
             if error_norm < convergence_tolerance:
@@ -198,19 +198,19 @@ class HartreeFock:
         return new_density_matrix, new_fock_matrix
 
 
-    def calculate_energy_ion(self, atomic_coordinates):
+    def calculate_energy_ion(self):
         '''Returns the ionic contribution to the total energy for an input list of atomic coordinates.'''
         energy_ion = 0.0
         for i, r_i in enumerate(self.atomic_coordinates):
             for j, r_j in enumerate(self.atomic_coordinates):
                 if i < j:
-                    energy_ion += (NobleGasModel.ionic_charge**2)*calculate_coulomb_energy('s', 's', r_i - r_j)
+                    energy_ion += (NobleGasModel.ionic_charge**2)*self.calculate_coulomb_energy('s', 's', r_i - r_j)
         return energy_ion
 
 
-    def calculate_energy_scf(self, hamiltonian_matrix, fock_matrix, density_matrix):
+    def calculate_energy_scf(self):
         '''Returns the Hartree-Fock total energy defined by the input Hamiltonian, Fock, & density matrices.'''
-        energy_scf = np.einsum('pq,pq',hamiltonian_matrix + fock_matrix,density_matrix)
+        energy_scf = np.einsum('pq,pq',self.hamiltonian_matrix + self.fock_matrix,self.density_matrix)
         return energy_scf
 
 
