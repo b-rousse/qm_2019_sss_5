@@ -1,20 +1,27 @@
 
 ![](qm5.png)
 
-Foobar is a Python library for dealing with word pluralization.
+qm5 is a python library for dealing with the energy calculations of noble gases.
+
+
+##Description
+qm5 Simulates a cluster of Argon atoms using quantum mechanics (QM). The codes uses simple semiempirical quantum mechanics. Since Argon is a noble gas, mostly London dispersion forces predominate. The lowest energy dipole transition is from the occupied $3p$ states to the unoccupied 4s steate, including these 4 atomic orbitals per atom.  
+
+
+
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Use the conda manager
 
 ```bash
-pip install foobar
+conda install qm5-molssi -c conda-forge
 ```
 
 ## Usage
 
 ```python
-import foobar
+import qm5
 
 foobar.pluralize('word') # returns 'words'
 foobar.pluralize('goose') # returns 'geese'
