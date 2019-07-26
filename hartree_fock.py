@@ -5,16 +5,15 @@ class HartreeFock:
         self.atomic_coordinates = atomic_coordinates
         #self.gas_model = NobleGasModel...
         self.ndof = len(self.atomic_coordinates) * NobleGasModel.orbitals_per_atom
-        self.interaction_matrix = self.calculate_interaction_matrix(self.atomic_coordinates, self.ndof, NobleGasModel.model_parameters)
-        self.hamiltonian_matrix = self.calculate_hamiltonian_matrix(self.atomic_coordinates, self.ndof, NobleGasModel.model_parameters)
-        self.density_matrix = None
-        self.chi_tensor = None
-        self.fock_matrix = None #check for error
-#        self.density_matrix = self.calculate_density_matrix(self.fock_matrix)
-#        self.chi_tensor = self.calculate_chi_tensor(self.atomic_coordinates, self.ndof ,NobleGasModel.model_parameters) 
+        self.interaction_matrix = self.calculate_interaction_matrix(NobleGasModel)
+        self.hamiltonian_matrix = self.calculate_hamiltonian_matrix(NobleGasModel)
+        self.fock_matrix = self.calculate_fock_matrix() #check for error
+        self.density_matrix = self.calculate_density_matrix(NobleGasModel)
+        self.chi_tensor = self.calculate_chi_tensor(NobleGasModel)
+        #self.density_matrix = self.calculate_density_matrix(self.fock_matrix)
+        #self.chi_tensor = self.calculate_chi_tensor(self.atomic_coordinates, self.ndof ,NobleGasModel.model_parameters) 
 
-
-    def calculate_interaction_matrix(self, NobleGasModel.model_parameters):
+    def calculate_interaction_matrix(self, NobleGasModel):
 
         '''Returns the electron-electron interaction energy matrix for an input list of atomic coordinates.'''
         interaction_matrix = np.zeros( (self.ndof,self.ndof) )
@@ -22,7 +21,7 @@ class HartreeFock:
             for q in range(self.ndof):
                 if NobleGasModel.atom(p) != NobleGasModel.atom(q):
                     r_pq = self.atomic_coordinates[NobleGasModel.atom(p)] - self.atomic_coordinates[NobleGasModel.atom(q)]
-                    interaction_matrix[p,q] = self.calculate_coulomb_energy(NobleGasModel.orb(p), NobleGasModel.orb(q), r_pq)
+                    interaction_matrix[p,q] = self.calculate_coulomb_energy(NobleGasModel.orb(p), NobleGasModel.orb(q), r_pq, NobleGasModel)
                 if p == q and NobleGasModel.orb(p) == 's':
                     interaction_matrix[p,q] = NobleGasModel.model_parameters['coulomb_s']
                 if p == q and NobleGasModel.orb(p) in NobleGasModel.p_orbitals:
@@ -31,7 +30,7 @@ class HartreeFock:
         return interaction_matrix
 
 
-    def calculate_coulomb_energy(self, o1, o2, r12):
+    def calculate_coulomb_energy(self, o1, o2, r12, NobleGasModel):
         """Returns Coulomb Matrix element for a pair of multipoles of type o1 and o2 separated by vector r12
 
         Parameters
@@ -52,7 +51,7 @@ class HartreeFock:
         if o1 == 's' and o2 in NobleGasModel.p_orbitals:
             coulomb_energy = np.dot(NobleGasModel.vec[o2], r12) / r12_length**3
         if o2 == 's' and o1 in NobleGasModel.p_orbitals:
-            coulomb_energy = -np.dot(NobleGasModel.vec[o1], r12) / r12_length**3
+            coulomb_energy = -1*np.dot(NobleGasModel.vec[o1], r12) / r12_length**3
         if o1 in NobleGasModel.p_orbitals and o2 in NobleGasModel.p_orbitals:
             coulomb_energy = ( np.dot(NobleGasModel.vec[o1], NobleGasModel.vec[o2]) / r12_length**3
                    - 3.0 * np.dot(NobleGasModel.vec[o1], r12) * np.dot(NobleGasModel.vec[o2], r12) / r12_length**5 )
@@ -60,7 +59,7 @@ class HartreeFock:
 
 
 
-    def calculate_potential_vector(self, NobleGasModel.model_parameters):#maybe make noblegasparamws part of self.
+    def calculate_potential_vector(self, NobleGasModel):#maybe make noblegasparamws part of self.
 
         '''Returns the electron-ion potential energy vector for an input list of atomic coordinates.'''
 
@@ -70,13 +69,13 @@ class HartreeFock:
             for atom_i,r_i in enumerate(self.atomic_coordinates):
                 r_pi = self.atomic_coordinates[NobleGasModel.atom(p)] - r_i
                 if atom_i != NobleGasModel.atom(p):
-                    potential_vector[p] += (self.calculate_pseudopotential_energy(NobleGasModel.orb(p), r_pi, NobleGasModel.model_parameters) - NobleGasModel.ionic_charge * self.calculate_coulomb_energy(NobleGasModel.orb(p), 's', r_pi) )
+                    potential_vector[p] += (self.calculate_pseudopotential_energy(NobleGasModel.orb(p), r_pi, NobleGasModel.model_parameters) - NobleGasModel.ionic_charge * self.calculate_coulomb_energy(NobleGasModel.orb(p), 's', r_pi, NobleGasModel) )
         return potential_vector
 
 
 
 
-    def calculate_chi_tensor(self, NobleGasModel.model_parameters):
+    def calculate_chi_tensor(self, NobleGasModel):
         '''Returns the chi tensor for an input list of atomic coordinates'''
 
         chi_tensor = np.zeros((self.ndof,self.ndof,self.ndof))
@@ -91,7 +90,7 @@ class HartreeFock:
 
 
 
-    def chi_on_atom(self, o1, o2, o3):
+    def chi_on_atom(self, o1, o2, o3, NobleGasModel):
         '''Returns the value of the chi tensor for 3 orbital indices on the same atom.'''
         if o1 == o2 and o3 == 's':
             return 1.0
@@ -102,7 +101,7 @@ class HartreeFock:
         return 0.0
 
 
-    def calculate_hopping_energy(self, o1, o2, r12, NobleGasModel.model_parameters):
+    def calculate_hopping_energy(self, o1, o2, r12, NobleGasModel):
         '''Returns the hopping matrix element for a pair of orbitals of type o1 & o2 separated by a vector r12.'''
         r12_rescaled = r12 / NobleGasModel.model_parameters['r_hop']
         r12_length = np.linalg.norm(r12_rescaled)
@@ -112,7 +111,7 @@ class HartreeFock:
         if o1 == 's' and o2 in NobleGasModel.p_orbitals:
             ans *= np.dot(NobleGasModel.vec[o2], r12_rescaled) * NobleGasModel.model_parameters['t_sp']
         if o2 == 's' and o1 in NobleGasModel.p_orbitals:
-            ans *= -np.dot(NobleGasModel.vec[o1], r12_rescaled)* NobleGasModel.model_parameters['t_sp']
+            ans *= -1*np.dot(NobleGasModel.vec[o1], r12_rescaled)* NobleGasModel.model_parameters['t_sp']
         if o1 in NobleGasModel.p_orbitals and o2 in NobleGasModel.p_orbitals:
             ans *= ( (r12_length**2) * np.dot(NobleGasModel.vec[o1], NobleGasModel.vec[o2]) * NobleGasModel.model_parameters['t_pp2']
                      - np.dot(NobleGasModel.vec[o1], r12_rescaled) * np.dot(NobleGasModel.vec[o2], r12_rescaled)
@@ -120,11 +119,11 @@ class HartreeFock:
         return ans
 
 
-    def calculate_hamiltonian_matrix(self, NobleGasModel.model_parameters):
+    def calculate_hamiltonian_matrix(self, NobleGasModel):
         '''Returns the 1-body Hamiltonian matrix for an input list of atomic coordinates.'''
 
         hamiltonian_matrix = np.zeros((self.ndof,self.ndof))
-        potential_vector = self.calculate_potential_vector(self.atomic_coordinates, NobleGasModel.model_parameters)
+        potential_vector = self.calculate_potential_vector(NobleGasModel)
         for p in range(self.ndof):
             for q in range(self.ndof):
                 if NobleGasModel.atom(p) != NobleGasModel.atom(q):
@@ -143,7 +142,7 @@ class HartreeFock:
 
 
 
-    def calculate_pseudopotential_energy(self, o, r, NobleGasModel.model_parameters):
+    def calculate_pseudopotential_energy(self, o, r, NobleGasModel):
         '''Returns the energy of a pseudopotential between a multipole of type o and an atom separated by a vector r.'''
         ans = NobleGasModel.model_parameters['v_pseudo']
         r_rescaled = r / NobleGasModel.model_parameters['r_pseudo']
@@ -154,7 +153,7 @@ class HartreeFock:
         return ans
 
 
-    def calculate_atomic_density_matrix(self):
+    def calculate_atomic_density_matrix(self, NobleGasModel):
         '''Returns a trial 1-electron density matrix for an input list of atomic coordinates.'''
 
         density_matrix = np.zeros((self.ndof,self.ndof))
@@ -172,7 +171,7 @@ class HartreeFock:
         return fock_matrix
 
 
-    def calculate_density_matrix(self):
+    def calculate_density_matrix(self, NobleGasModel):
         '''Returns the 1-electron density matrix defined by the input Fock matrix.'''
     
         num_occ = (NobleGasModel.ionic_charge//2)*np.size(self.fock_matrix,0)//NobleGasModel.orbitals_per_atom
@@ -182,11 +181,11 @@ class HartreeFock:
 
         return density_matrix
 
-    def scf_cycle(self, max_scf_iterations = 100, mixing_fraction = 0.25, convergence_tolerance = 1e-4):
+    def scf_cycle(self, max_scf_iterations = 200, mixing_fraction = 0.25, convergence_tolerance = 1e-4):
         '''Returns converged density & Fock matrices defined by the input Hamiltonian, interaction, & density matrices.'''
         old_density_matrix = self.density_matrix.copy()
         for iteration in range(max_scf_iterations):
-            new_fock_matrix = self.calculate_fock_matrix(self.hamiltonian_matrix, self.interaction_matrix, old_density_matrix, self.chi_tensor)
+            new_fock_matrix = self.calculate_fock_matrix()
             new_density_matrix = self.calculate_density_matrix(new_fock_matrix)
 
             error_norm = np.linalg.norm( old_density_matrix - new_density_matrix )
@@ -198,13 +197,13 @@ class HartreeFock:
         return new_density_matrix, new_fock_matrix
 
 
-    def calculate_energy_ion(self):
+    def calculate_energy_ion(self, NobleGasModel):
         '''Returns the ionic contribution to the total energy for an input list of atomic coordinates.'''
         energy_ion = 0.0
         for i, r_i in enumerate(self.atomic_coordinates):
             for j, r_j in enumerate(self.atomic_coordinates):
                 if i < j:
-                    energy_ion += (NobleGasModel.ionic_charge**2)*self.calculate_coulomb_energy('s', 's', r_i - r_j)
+                    energy_ion += (NobleGasModel.ionic_charge**2)*self.calculate_coulomb_energy('s', 's', r_i - r_j, NobleGasModel)
         return energy_ion
 
 

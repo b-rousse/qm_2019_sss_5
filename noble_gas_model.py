@@ -20,7 +20,6 @@ class NobleGasModel():
         self.orbitals_per_atom = len(self.orbital_types)
         self.vec = {'px': [1, 0, 0], 'py': [0, 1, 0], 'pz': [0, 0, 1]}
         self.orbital_occupations = { 's':0, 'px':1, 'py':1, 'pz':1 }
-        
 
     def __str__(self):
         return 'Noble Gas Model created with '+str(self.orbital_types)+' orbitals and an ionic charge of '+ str(self.ionic_charge) + '.'
