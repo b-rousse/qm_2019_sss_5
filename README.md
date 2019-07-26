@@ -16,12 +16,7 @@ conda install qm5-molssi -c conda-forge
 
 ## Usage
 
-qm5 works with 3 main files: `noble_gas_model`, `HartreeFock`, and `MP2`. Each of these files is a class that has attributes and methods associated with the class. All of them work together to produce the Hartree Fock energy with the MP2 correction for a Noble Gas, e.g. Argon. 
-
 The main file is `routine.py` that performs as follows:
-
-
-
 
 ```python
 
@@ -43,6 +38,10 @@ if __name__ == "__main__":
     #print(F'The MP2 energy is {mp2.MP2.calculate_energy_mp2}')
 
 ```
+
+qm5 works with 3 main files: `noble_gas_model`, `HartreeFock`, and `MP2`. Each of these files is a class that has attributes and methods associated with the class. All of them work together to produce the Hartree Fock energy with the MP2 correct    ion for a Noble Gas, e.g. Argon.
+
+
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
