@@ -1,6 +1,5 @@
-# qm5
 
-![](qm5.png)
+![](qm5.pngi = 400X400)
 
 Foobar is a Python library for dealing with word pluralization.
 
