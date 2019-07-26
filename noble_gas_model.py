@@ -1,4 +1,4 @@
-class NobleGasModel():
+class NobleGasModl():
     def __init__(self):
         self.model_parameters = {
          'coulomb_p': -0.010255409806855187,
@@ -12,8 +12,7 @@ class NobleGasModel():
          't_pp2': -0.0041958662271044875,
          't_sp': 0.000450562836426027,
          't_ss': 0.0289251941290921,
-         'v_pseudo': -0.015945813280635074
-                                }
+         'v_pseudo': -0.015945813280635074}
         self.ionic_charge = 6
         self.orbital_types = ['s', 'px', 'py', 'pz']
         self.p_orbitals = self.orbital_types[1:]

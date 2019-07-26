@@ -1,4 +1,5 @@
 import numpy as np
+from hartree_fock import HartreeFock
 class MP2(HartreeFock):
     def __init__(self, fock_matrix, interaction_matrix, chi_tensor, NobleGasModel):
         super().__init__(fock_matrix, interaction_matrix, chi_tensor)

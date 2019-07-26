@@ -4,9 +4,12 @@ import hartree_fock as hf
 import noble_gas_model as noble_gas_model
 
 if __name__ == "__main__":
-    noble_gas_instance = noble_gas_model.NobleGasModel()
+    NobleGasModel = noble_gas_model.NobleGasModl()
     atomic_coordinates = np.array([[0.0,0.0,0.0], [3.0,4.0,5.0]])
-    hartree_fock_instance = hf.HartreeFock(noble_gas_instance, atomic_coordinates)
+    hartree_fock_instance = hf.HartreeFock(NobleGasModel, atomic_coordinates)
     hartree_fock_instance.density_matrix = hartree_fock_instance.calculate_atomic_density_matrix(NobleGasModel)
-    hartree_fock_instance.density_matrix = hartree_fock_instance.canc
-
+    hartree_fock_instance.density_matrix, hartree_fock_instance.fock_matrix = hartree_fock_instance.scf_cycle(NobleGasModel)
+    energy_scf = hartree_fock_instance.calculate_energy_scf()
+    energy_ion = hartree_fock_instance.calculate_energy_ion(NobleGasModel)
+    print(F'The SCF energy is  {energy_scf} and the ion energy is {energy_ion} ')
+    

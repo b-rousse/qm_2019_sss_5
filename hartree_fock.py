@@ -1,5 +1,5 @@
 import numpy as np
-
+from noble_gas_model import NobleGasModl
 class HartreeFock:
     def __init__(self, NobleGasModel, atomic_coordinates):
         self.atomic_coordinates = atomic_coordinates
@@ -7,9 +7,9 @@ class HartreeFock:
         self.ndof = len(self.atomic_coordinates) * NobleGasModel.orbitals_per_atom
         self.interaction_matrix = self.calculate_interaction_matrix(NobleGasModel)
         self.hamiltonian_matrix = self.calculate_hamiltonian_matrix(NobleGasModel)
-        self.fock_matrix = self.calculate_fock_matrix() #check for error
-        self.density_matrix = self.calculate_density_matrix(NobleGasModel)
         self.chi_tensor = self.calculate_chi_tensor(NobleGasModel)
+        self.density_matrix = self.calculate_atomic_density_matrix(NobleGasModel)
+        self.fock_matrix = self.calculate_fock_matrix() #check for error
         #self.density_matrix = self.calculate_density_matrix(self.fock_matrix)
         #self.chi_tensor = self.calculate_chi_tensor(self.atomic_coordinates, self.ndof ,NobleGasModel.model_parameters) 
 
@@ -69,7 +69,7 @@ class HartreeFock:
             for atom_i,r_i in enumerate(self.atomic_coordinates):
                 r_pi = self.atomic_coordinates[NobleGasModel.atom(p)] - r_i
                 if atom_i != NobleGasModel.atom(p):
-                    potential_vector[p] += (self.calculate_pseudopotential_energy(NobleGasModel.orb(p), r_pi, NobleGasModel.model_parameters) - NobleGasModel.ionic_charge * self.calculate_coulomb_energy(NobleGasModel.orb(p), 's', r_pi, NobleGasModel) )
+                    potential_vector[p] += (self.calculate_pseudopotential_energy(NobleGasModel.orb(p), r_pi, NobleGasModel) - NobleGasModel.ionic_charge * self.calculate_coulomb_energy(NobleGasModel.orb(p), 's', r_pi, NobleGasModel) )
         return potential_vector
 
 
@@ -84,7 +84,7 @@ class HartreeFock:
                 q = NobleGasModel.ao_index(NobleGasModel.atom(p), orb_q) # p & q on same atom
                 for orb_r in NobleGasModel.orbital_types:
                     r = NobleGasModel.ao_index(NobleGasModel.atom(p), orb_r) # p & r on same atom
-                    chi_tensor[p,q,r] = self.chi_on_atom(NobleGasModel.orb(p), NobleGasModel.orb(q), NobleGasModel.orb(r), NobleGasModel.model_parameters)
+                    chi_tensor[p,q,r] = self.chi_on_atom(NobleGasModel.orb(p), NobleGasModel.orb(q), NobleGasModel.orb(r), NobleGasModel)
 
         return chi_tensor
 
@@ -128,7 +128,7 @@ class HartreeFock:
             for q in range(self.ndof):
                 if NobleGasModel.atom(p) != NobleGasModel.atom(q):
                     r_pq = self.atomic_coordinates[NobleGasModel.atom(p)] - self.atomic_coordinates[NobleGasModel.atom(q)]
-                    hamiltonian_matrix[p,q] = self.calculate_hopping_energy(NobleGasModel.orb(p), NobleGasModel.orb(q), r_pq, NobleGasModel.model_parameters)
+                    hamiltonian_matrix[p,q] = self.calculate_hopping_energy(NobleGasModel.orb(p), NobleGasModel.orb(q), r_pq, NobleGasModel)
                 if NobleGasModel.atom(p) == NobleGasModel.atom(q):
                     if p == q and NobleGasModel.orb(p) == 's':
                         hamiltonian_matrix[p,q] += NobleGasModel.model_parameters['energy_s']
@@ -136,7 +136,7 @@ class HartreeFock:
                         hamiltonian_matrix[p,q] += NobleGasModel.model_parameters['energy_p']
                     for orb_r in NobleGasModel.orbital_types:
                         r = NobleGasModel.ao_index(NobleGasModel.atom(p), orb_r)
-                        hamiltonian_matrix[p,q] += ( self.chi_on_atom(NobleGasModel.orb(p), NobleGasModel.orb(q), orb_r, NobleGasModel.model_parameters) * potential_vector[r] )
+                        hamiltonian_matrix[p,q] += ( self.chi_on_atom(NobleGasModel.orb(p), NobleGasModel.orb(q), orb_r, NobleGasModel) * potential_vector[r] )
 
         return hamiltonian_matrix
 
@@ -158,13 +158,12 @@ class HartreeFock:
 
         density_matrix = np.zeros((self.ndof,self.ndof))
         for p in range(self.ndof):
-            density_matrix[p,p] = NobleGasModel.orbital_occupation[NobleGasModel.orb(p)]
+            density_matrix[p,p] = NobleGasModel.orbital_occupations[NobleGasModel.orb(p)]
         return density_matrix
 
 
     def calculate_fock_matrix(self):
         '''Returns the Fock matrix defined by the input Hamiltonian, interaction, & density matrices.'''
-
         fock_matrix = self.hamiltonian_matrix.copy()
         fock_matrix += 2.0*np.einsum('pqt,rsu,tu,rs', self.chi_tensor, self.chi_tensor, self.interaction_matrix, self.density_matrix, optimize=True)
         fock_matrix -= np.einsum('rqt,psu,tu,rs', self.chi_tensor, self.chi_tensor, self.interaction_matrix, self.density_matrix, optimize=True)
@@ -181,20 +180,22 @@ class HartreeFock:
 
         return density_matrix
 
-    def scf_cycle(self, max_scf_iterations = 200, mixing_fraction = 0.25, convergence_tolerance = 1e-4):
+    def scf_cycle(self, NobleGasModel, max_scf_iterations = 200, mixing_fraction = 0.25, convergence_tolerance = 1e-7):
         '''Returns converged density & Fock matrices defined by the input Hamiltonian, interaction, & density matrices.'''
         old_density_matrix = self.density_matrix.copy()
         for iteration in range(max_scf_iterations):
-            new_fock_matrix = self.calculate_fock_matrix()
-            new_density_matrix = self.calculate_density_matrix(new_fock_matrix)
+            print(F'iteration is {iteration}')
+            self.fock_matrix = self.calculate_fock_matrix()
+            self.density_matrix = self.calculate_density_matrix(NobleGasModel)
 
-            error_norm = np.linalg.norm( old_density_matrix - new_density_matrix )
+            error_norm = np.linalg.norm(old_density_matrix - self.density_matrix)
+            print(F'Error norm is {error_norm}')
             if error_norm < convergence_tolerance:
-                return new_density_matrix, new_fock_matrix
+                return self.density_matrix, self.fock_matrix
 
-            old_density_matrix = (mixing_fraction * new_density_matrix + (1.0 - mixing_fraction) * old_density_matrix)
+            old_density_matrix = (mixing_fraction * self.density_matrix + (1.0 - mixing_fraction) * old_density_matrix)
         print("WARNING: SCF cycle didn't converge")
-        return new_density_matrix, new_fock_matrix
+        return self.density_matrix, self.fock_matrix
 
 
     def calculate_energy_ion(self, NobleGasModel):
