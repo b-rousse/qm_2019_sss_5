@@ -1,5 +1,7 @@
 import numpy as np
 from hartree_fock import HartreeFock
+from noble_gas_model import NobleGasModl
+
 class MP2(HartreeFock):
     def __init__(self, NobleGasModel, atomic_coordinates):
         super().__init__(NobleGasModel, atomic_coordinates)
