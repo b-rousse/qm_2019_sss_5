@@ -1,5 +1,5 @@
 import numpy as np
-from noble_gas_model import NobleGasModl
+#from noble_gas_model import NobleGasModl
 class HartreeFock:
     def __init__(self, NobleGasModel, atomic_coordinates):
         self.atomic_coordinates = atomic_coordinates
