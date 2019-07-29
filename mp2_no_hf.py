@@ -1,17 +1,14 @@
 import numpy as np
-
+from hartree_fock import HartreeFock
+from noble_gas_model import NobleGasModl
 """
 This class takes an instance of HartreeFock and NobelGas and is able to calculate the MP2 energy correction on top of the HF energy
 """
 class MP2NoHF:
-    def __init__(self, HartreeFock, NobleGasModel):
-        self.hf_energy = HartreeFock.hf_energy
-        self.occupied_energy = HartreeFock.occupied_energy
-        self.interaction_tensor = HartreeFock.interaction_tensor
+    def __init__(self, HartreeFock, NobleGasModel):#here I should only pass what I need for MP2.
+        self.hf_energy = HartreeFock.energy_scf
         self.NobleGasModel = NobleGasModel
         self.mp2_energy = 0.0
-        self.mp2_correction = 0.0
-
         self.fock_matrix = HartreeFock.fock_matrix
         self.interaction_matrix = HartreeFock.interaction_matrix
         self.chi_tensor = HartreeFock.chi_tensor
@@ -36,10 +33,10 @@ class MP2NoHF:
     virtual_matrix : np.array
         A np.array of size (num_ao, num_ao - num_occ) where each column is a canonical virtual molecular orbital.
     """
-    def partition_orbitals(self, fock_matrix):
+    def partition_orbitals(self):
         '''Returns a list with the occupied/virtual energies & orbitals defined by the input Fock matrix.'''
-        num_occ = (self.NobleGasModel.ionic_charge // 2) * np.size(fock_matrix, 0) // self.NobleGasModel.orbitals_per_atom
-        orbital_energy, orbital_matrix = np.linalg.eigh(fock_matrix)
+        num_occ = (self.NobleGasModel.ionic_charge // 2) * np.size(self.fock_matrix, 0) // self.NobleGasModel.orbitals_per_atom
+        orbital_energy, orbital_matrix = np.linalg.eigh(self.fock_matrix)
         occupied_energy = orbital_energy[:num_occ]
         virtual_energy = orbital_energy[num_occ:]
         occupied_matrix = orbital_matrix[:, :num_occ]
@@ -96,7 +93,7 @@ class MP2NoHF:
             interaction_matrix = self.interaction_matrix
         if chi_tensor == None:
             chi_tensor = self.chi_tensor
-        E_occ, E_virt, occupied_matrix, virtual_matrix = self.partition_orbitals(fock_matrix)
+        E_occ, E_virt, occupied_matrix, virtual_matrix = self.partition_orbitals()
         V_tilde = self.transform_interaction_tensor(occupied_matrix, virtual_matrix, interaction_matrix, chi_tensor)
 
         energy_mp2 = 0.0
